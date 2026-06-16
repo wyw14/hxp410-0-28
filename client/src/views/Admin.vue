@@ -158,18 +158,22 @@ async function login() {
   loginError.value = ''
 
   try {
-    const response = await fetch('/api/announcements', {
+    const response = await fetch('/api/admin/login', {
+      method: 'POST',
       headers: {
+        'Content-Type': 'application/json',
         'x-admin-password': password.value
       }
     })
 
     if (response.status === 403) {
       loginError.value = '密码错误，请重试'
-    } else {
+    } else if (response.ok) {
       localStorage.setItem('adminPassword', password.value)
       isLoggedIn.value = true
       fetchAnnouncements()
+    } else {
+      loginError.value = '登录失败，请稍后重试'
     }
   } catch (error) {
     loginError.value = '网络错误，请稍后重试'
@@ -189,13 +193,19 @@ async function fetchAnnouncements() {
   loading.value = true
   try {
     const adminPassword = localStorage.getItem('adminPassword')
-    const response = await fetch('/api/announcements', {
+    const response = await fetch('/api/admin/announcements', {
       headers: {
         'x-admin-password': adminPassword
       }
     })
-    const data = await response.json()
-    announcements.value = data.announcements
+    if (response.status === 403) {
+      isLoggedIn.value = false
+      localStorage.removeItem('adminPassword')
+      loginError.value = '登录已过期，请重新登录'
+    } else {
+      const data = await response.json()
+      announcements.value = data.announcements
+    }
   } catch (error) {
     console.error('获取公告列表失败:', error)
   } finally {

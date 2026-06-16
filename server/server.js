@@ -142,6 +142,32 @@ app.get('/api/announcements/latest', (req, res) => {
 app.get('/api/announcements', (req, res) => {
   try {
     const announcements = readAnnouncements();
+    const activeAnnouncements = announcements
+      .filter(a => a.status === 'active')
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    res.json({
+      announcements: activeAnnouncements.map(a => ({
+        id: a.id,
+        title: a.title,
+        content: a.content,
+        status: a.status,
+        createdAt: a.createdAt,
+        updatedAt: a.updatedAt
+      }))
+    });
+  } catch (error) {
+    console.error('获取公告列表时出错:', error);
+    res.status(500).json({ error: '服务器内部错误' });
+  }
+});
+
+app.post('/api/admin/login', verifyAdmin, (req, res) => {
+  res.json({ success: true, message: '验证成功' });
+});
+
+app.get('/api/admin/announcements', verifyAdmin, (req, res) => {
+  try {
+    const announcements = readAnnouncements();
     const sorted = announcements.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     res.json({
       announcements: sorted.map(a => ({
