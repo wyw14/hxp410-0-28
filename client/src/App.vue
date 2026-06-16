@@ -6,6 +6,9 @@
         <router-link to="/" class="nav-link" :class="{ active: $route.path === '/' }">
           首页
         </router-link>
+        <router-link to="/announcements" class="nav-link" :class="{ active: $route.path === '/announcements' }">
+          公告栏
+        </router-link>
         <router-link to="/confess" class="nav-link" :class="{ active: $route.path === '/confess' }">
           倾诉秘密
         </router-link>

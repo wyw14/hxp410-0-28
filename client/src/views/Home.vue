@@ -1,5 +1,14 @@
 <template>
   <div class="home-container">
+    <div v-if="announcement" class="announcement-card" :key="announcement.id">
+      <div class="announcement-header">
+        <span class="announcement-icon">📢</span>
+        <h3 class="announcement-title">{{ announcement.title }}</h3>
+      </div>
+      <p class="announcement-content">{{ announcement.content }}</p>
+      <div class="announcement-date">{{ formatDate(announcement.createdAt) }}</div>
+    </div>
+
     <div class="card secret-card">
       <div class="card-header">
         <span class="icon">💫</span>
@@ -49,6 +58,29 @@ const loading = ref(true)
 const hasSecret = ref(false)
 const secret = ref(null)
 const message = ref('')
+const announcement = ref(null)
+
+function formatDate(dateString) {
+  const date = new Date(dateString)
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  const hours = String(date.getHours()).padStart(2, '0')
+  const minutes = String(date.getMinutes()).padStart(2, '0')
+  return `${year}-${month}-${day} ${hours}:${minutes}`
+}
+
+async function fetchLatestAnnouncement() {
+  try {
+    const response = await fetch('/api/announcements/latest')
+    const data = await response.json()
+    if (data.hasAnnouncement) {
+      announcement.value = data.announcement
+    }
+  } catch (error) {
+    console.error('获取公告失败:', error)
+  }
+}
 
 async function fetchRandomSecret() {
   loading.value = true
@@ -72,6 +104,7 @@ function goToConfess() {
 }
 
 onMounted(() => {
+  fetchLatestAnnouncement()
   fetchRandomSecret()
 })
 </script>
@@ -80,6 +113,60 @@ onMounted(() => {
 .home-container {
   width: 100%;
   max-width: 600px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.announcement-card {
+  background: linear-gradient(135deg, #fff9e6 0%, #fff3cd 100%);
+  border: 1px solid #ffeeba;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 15px rgba(255, 193, 7, 0.2);
+  animation: slideDown 0.6s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.announcement-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.announcement-icon {
+  font-size: 28px;
+}
+
+.announcement-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #856404;
+  margin: 0;
+}
+
+.announcement-content {
+  font-size: 15px;
+  line-height: 1.7;
+  color: #664d03;
+  margin: 0 0 12px 0;
+}
+
+.announcement-date {
+  font-size: 13px;
+  color: #997a2b;
+  text-align: right;
 }
 
 .secret-card {
